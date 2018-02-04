@@ -8,7 +8,7 @@ const port = 8080;
 
 //Changing default views path
 app.set('views', path.join(__dirname, '/dev/views/layouts'));
-app.use('/scripts', express.static(__dirname + '/src'));
+app.use('/scripts', express.static(__dirname + '/build'));
 
 //EJS engine
 app.engine('html', ejs.renderFile);

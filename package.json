@@ -4,7 +4,8 @@
   "description": "Charts lib for web using webGL",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "webpack": "webpack"
   },
   "repository": {
     "type": "git",
@@ -21,10 +22,7 @@
     "JS",
     "Node.js"
   ],
-  "author": [
-    "patty-victor",
-    "RMSiqueira"
-  ],
+  "author": "",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/patty-victor/lullaby.js/issues"
@@ -32,6 +30,14 @@
   "homepage": "https://github.com/patty-victor/lullaby.js#readme",
   "dependencies": {
     "ejs": "^2.5.7",
-    "express": "^4.16.2"
+    "express": "^4.16.2",
+    "gl-matrix": "^2.4.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-es2015": "^6.24.1",
+    "webpack": "^3.10.0"
   }
 }

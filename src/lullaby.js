@@ -1,6 +1,9 @@
-function initLullaby() {
-    var context = {};
 
+var lullaby = {};
+
+(function () {
+    const glm = require('gl-matrix')
+    
     //Test shaders
     // Vertex shader program
     const vsSource = `
@@ -21,7 +24,7 @@ function initLullaby() {
     `;
 
     //Functions
-    var main = function () {
+    lullaby.main = function () {
         const canvas = document.querySelector("#glCanvas");
         // Initialize the GL context
         const gl = canvas.getContext("webgl");
@@ -50,8 +53,10 @@ function initLullaby() {
             },
         };
 
+        var buffer = initBuffers(gl);
+
+        drawScene(gl, programInfo, buffer);
     }
-    context.main = main;
 
     // Initialize a shader program, so WebGL knows how to draw our data
     function initShaderProgram(gl, vsSource, fsSource) {
@@ -150,11 +155,11 @@ function initLullaby() {
         const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
         const zNear = 0.1;
         const zFar = 100.0;
-        const projectionMatrix = mat4.create();
+        const projectionMatrix = glm.mat4.create();
 
         // note: glmatrix.js always has the first argument
         // as the destination to receive the result.
-        mat4.perspective(projectionMatrix,
+        glm.mat4.perspective(projectionMatrix,
             fieldOfView,
             aspect,
             zNear,
@@ -162,12 +167,12 @@ function initLullaby() {
 
         // Set the drawing position to the "identity" point, which is
         // the center of the scene.
-        const modelViewMatrix = mat4.create();
+        const modelViewMatrix = glm.mat4.create();
 
         // Now move the drawing position a bit to where we want to
         // start drawing the square.
 
-        mat4.translate(modelViewMatrix,     // destination matrix
+        glm.mat4.translate(modelViewMatrix,     // destination matrix
             modelViewMatrix,     // matrix to translate
             [-0.0, 0.0, -6.0]);  // amount to translate
 
@@ -214,5 +219,6 @@ function initLullaby() {
         }
     }
 
-    return context;
-}
+})();
+
+window.lullaby = lullaby;
