@@ -5,12 +5,19 @@
         </h1>
     </div>
     <div>
-        <canvas id="glCanvas" width="640" height="480"></canvas>
+        <canvas id="glCanvas"></canvas>
     </div>
 </body>
 
 <script src="/scripts/lullaby.js"></script>
 
 <script>
-    lullaby.main();
+
+    var options = {
+        width: 400,
+        height: 300,
+    };
+
+    lullaby.createGaugeChart('glCanvas', options);
+
 </script>

@@ -2,8 +2,22 @@
 var lullaby = {};
 
 (function (exports) {
+    //Exported functions
+    exports.createGaugeChart = createGaugeChart;
 
+    //Globals
+    const defaultClearColor = {
+        r: 0.9,
+        g: 0.9,
+        b: 0.9,
+        a: 1.0,
+    };
+    const defaultChartSize = {
+        width: 640,
+        height: 480,
+    }
 
+    //Requires
     const glm = require('gl-matrix')
 
     //Test shaders
@@ -26,6 +40,72 @@ var lullaby = {};
     `;
 
     //Functions
+    ////Public functions
+    //////Creates a gauge chart and return it's object
+    function createGaugeChart(canvasId, options) {
+        //If no options was passed create a default object
+        if(!options){
+            options = {};
+        }
+
+        const gl = initGlContext(canvasId, options.clearColor, options.width, options.height);
+
+        //Context not created
+        if (!gl) {
+            console.log("GL context could not be created.")
+            return;
+        }
+    }
+
+    ////Private functions
+    //////Init the canvas with the passed id
+    function initGlContext(canvasId, clearColor, width, height) {
+        const canvas = document.getElementById(canvasId);
+        //Canvas not found
+        if (!canvas) {
+            console.log("Canvas element not found.");
+            return false;
+        }
+
+        //Set chart size
+        if(!width){
+            canvas.width = defaultChartSize.width;
+        }
+        else{
+            canvas.width = width;
+        }
+
+        if(!height){
+            canvas.height = defaultChartSize.height;
+        }
+        else{
+            canvas.height = height;
+        }
+
+
+        const gl = canvas.getContext("webgl");
+
+        // Only continue if WebGL is available and working
+        if (!gl) {
+            console.log("Unable to initialize WebGL. Your browser or machine may not support it.");
+            return false;
+        }
+
+        //Set the clear color
+        if (clearColor) {
+            gl.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+        }
+        //Default clear color
+        else {
+            gl.clearColor(defaultClearColor.r, defaultClearColor.g, defaultClearColor.b, defaultClearColor.a);
+        }
+
+        // Clear the color buffer with specified clear color
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        return gl;
+    }
+
     exports.main = function () {
         const canvas = document.querySelector("#glCanvas");
         // Initialize the GL context

@@ -2540,191 +2540,268 @@ var forEach = exports.forEach = function () {
 var lullaby = {};
 
 (function (exports) {
+    //Exported functions
+    exports.createGaugeChart = createGaugeChart;
 
-        var glm = __webpack_require__(5);
+    //Globals
+    var defaultClearColor = {
+        r: 0.9,
+        g: 0.9,
+        b: 0.9,
+        a: 1.0
+    };
+    var defaultChartSize = {
+        width: 640,
+        height: 480
 
-        //Test shaders
-        // Vertex shader program
-        var vsSource = "\n    attribute vec4 aVertexPosition;\n\n    uniform mat4 uModelViewMatrix;\n    uniform mat4 uProjectionMatrix;\n\n    void main() {\n        gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;\n    }\n    ";
+        //Requires
+    };var glm = __webpack_require__(5);
 
-        var fsSource = "\n    void main() {\n      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n    }\n    ";
+    //Test shaders
+    // Vertex shader program
+    var vsSource = "\n    attribute vec4 aVertexPosition;\n\n    uniform mat4 uModelViewMatrix;\n    uniform mat4 uProjectionMatrix;\n\n    void main() {\n        gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;\n    }\n    ";
 
-        //Functions
-        exports.main = function () {
-                var canvas = document.querySelector("#glCanvas");
-                // Initialize the GL context
-                var gl = canvas.getContext("webgl");
+    var fsSource = "\n    void main() {\n      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n    }\n    ";
 
-                // Only continue if WebGL is available and working
-                if (!gl) {
-                        alert("Unable to initialize WebGL. Your browser or machine may not support it.");
-                        return;
-                }
-                // Set clear color to black, fully opaque
-                gl.clearColor(0.0, 0.0, 0.0, 1.0);
-                // Clear the color buffer with specified clear color
-                gl.clear(gl.COLOR_BUFFER_BIT);
+    //Functions
+    ////Public functions
+    //////Creates a gauge chart and return it's object
+    function createGaugeChart(canvasId, options) {
+        //If no options was passed create a default object
+        if (!options) {
+            options = {};
+        }
 
-                //Init program shader
-                var shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+        var gl = initGlContext(canvasId, options.clearColor, options.width, options.height);
 
-                var programInfo = {
-                        program: shaderProgram,
-                        attribLocations: {
-                                vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition')
-                        },
-                        uniformLocations: {
-                                projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-                                modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
-                        }
-                };
+        //Context not created
+        if (!gl) {
+            console.log("GL context could not be created.");
+            return;
+        }
+    }
 
-                var buffer = initBuffers(gl);
+    ////Private functions
+    //////Init the canvas with the passed id
+    function initGlContext(canvasId, clearColor, width, height) {
+        var canvas = document.getElementById(canvasId);
+        //Canvas not found
+        if (!canvas) {
+            console.log("Canvas element not found.");
+            return false;
+        }
 
-                drawScene(gl, programInfo, buffer);
+        //Set chart size
+        if (!width) {
+            canvas.width = defaultChartSize.width;
+        } else {
+            canvas.width = width;
+        }
+
+        if (!height) {
+            canvas.height = defaultChartSize.height;
+        } else {
+            canvas.height = height;
+        }
+
+        var gl = canvas.getContext("webgl");
+
+        // Only continue if WebGL is available and working
+        if (!gl) {
+            console.log("Unable to initialize WebGL. Your browser or machine may not support it.");
+            return false;
+        }
+
+        //Set the clear color
+        if (clearColor) {
+            gl.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+        }
+        //Default clear color
+        else {
+                gl.clearColor(defaultClearColor.r, defaultClearColor.g, defaultClearColor.b, defaultClearColor.a);
+            }
+
+        // Clear the color buffer with specified clear color
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        return gl;
+    }
+
+    exports.main = function () {
+        var canvas = document.querySelector("#glCanvas");
+        // Initialize the GL context
+        var gl = canvas.getContext("webgl");
+
+        // Only continue if WebGL is available and working
+        if (!gl) {
+            alert("Unable to initialize WebGL. Your browser or machine may not support it.");
+            return;
+        }
+        // Set clear color to black, fully opaque
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        // Clear the color buffer with specified clear color
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        //Init program shader
+        var shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+
+        var programInfo = {
+            program: shaderProgram,
+            attribLocations: {
+                vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition')
+            },
+            uniformLocations: {
+                projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+                modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
+            }
         };
 
-        // Initialize a shader program, so WebGL knows how to draw our data
-        function initShaderProgram(gl, vsSource, fsSource) {
-                var vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-                var fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+        var buffer = initBuffers(gl);
 
-                // Create the shader program
+        drawScene(gl, programInfo, buffer);
+    };
 
-                var shaderProgram = gl.createProgram();
-                gl.attachShader(shaderProgram, vertexShader);
-                gl.attachShader(shaderProgram, fragmentShader);
-                gl.linkProgram(shaderProgram);
+    // Initialize a shader program, so WebGL knows how to draw our data
+    function initShaderProgram(gl, vsSource, fsSource) {
+        var vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+        var fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
 
-                // If creating the shader program failed, alert
+        // Create the shader program
 
-                if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-                        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
-                        return null;
-                }
+        var shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
 
-                return shaderProgram;
+        // If creating the shader program failed, alert
+
+        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+            return null;
         }
 
-        // creates a shader of the given type, uploads the source and
-        // compiles it.
-        function loadShader(gl, type, source) {
-                var shader = gl.createShader(type);
+        return shaderProgram;
+    }
 
-                // Send the source to the shader object
-                gl.shaderSource(shader, source);
+    // creates a shader of the given type, uploads the source and
+    // compiles it.
+    function loadShader(gl, type, source) {
+        var shader = gl.createShader(type);
 
-                // Compile the shader program
-                gl.compileShader(shader);
+        // Send the source to the shader object
+        gl.shaderSource(shader, source);
 
-                // See if it compiled successfully
-                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                        alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
-                        gl.deleteShader(shader);
-                        return null;
-                }
+        // Compile the shader program
+        gl.compileShader(shader);
 
-                return shader;
+        // See if it compiled successfully
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+            gl.deleteShader(shader);
+            return null;
         }
 
-        function initBuffers(gl) {
+        return shader;
+    }
 
-                // Create a buffer for the square's positions.
+    function initBuffers(gl) {
 
-                var positionBuffer = gl.createBuffer();
+        // Create a buffer for the square's positions.
 
-                // Select the positionBuffer as the one to apply buffer
-                // operations to from here out.
+        var positionBuffer = gl.createBuffer();
 
-                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        // Select the positionBuffer as the one to apply buffer
+        // operations to from here out.
 
-                // Now create an array of positions for the square.
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-                var positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
+        // Now create an array of positions for the square.
 
-                // Now pass the list of positions into WebGL to build the
-                // shape. We do this by creating a Float32Array from the
-                // JavaScript array, then use it to fill the current buffer.
+        var positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
 
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+        // Now pass the list of positions into WebGL to build the
+        // shape. We do this by creating a Float32Array from the
+        // JavaScript array, then use it to fill the current buffer.
 
-                return {
-                        position: positionBuffer
-                };
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+        return {
+            position: positionBuffer
+        };
+    }
+
+    function drawScene(gl, programInfo, buffers) {
+        gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
+        gl.clearDepth(1.0); // Clear everything
+        gl.enable(gl.DEPTH_TEST); // Enable depth testing
+        gl.depthFunc(gl.LEQUAL); // Near things obscure far things
+
+        // Clear the canvas before we start drawing on it.
+
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        // Create a perspective matrix, a special matrix that is
+        // used to simulate the distortion of perspective in a camera.
+        // Our field of view is 45 degrees, with a width/height
+        // ratio that matches the display size of the canvas
+        // and we only want to see objects between 0.1 units
+        // and 100 units away from the camera.
+
+        var fieldOfView = 45 * Math.PI / 180; // in radians
+        var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+        var zNear = 0.1;
+        var zFar = 100.0;
+        var projectionMatrix = glm.mat4.create();
+
+        // note: glmatrix.js always has the first argument
+        // as the destination to receive the result.
+        glm.mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
+
+        // Set the drawing position to the "identity" point, which is
+        // the center of the scene.
+        var modelViewMatrix = glm.mat4.create();
+
+        // Now move the drawing position a bit to where we want to
+        // start drawing the square.
+
+        glm.mat4.translate(modelViewMatrix, // destination matrix
+        modelViewMatrix, // matrix to translate
+        [-0.0, 0.0, -6.0]); // amount to translate
+
+        // Tell WebGL how to pull out the positions from the position
+        // buffer into the vertexPosition attribute.
+        {
+            var numComponents = 2; // pull out 2 values per iteration
+            var type = gl.FLOAT; // the data in the buffer is 32bit floats
+            var normalize = false; // don't normalize
+            var stride = 0; // how many bytes to get from one set of values to the next
+            // 0 = use type and numComponents above
+            var offset = 0; // how many bytes inside the buffer to start from
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+            gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, numComponents, type, normalize, stride, offset);
+            gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
         }
 
-        function drawScene(gl, programInfo, buffers) {
-                gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
-                gl.clearDepth(1.0); // Clear everything
-                gl.enable(gl.DEPTH_TEST); // Enable depth testing
-                gl.depthFunc(gl.LEQUAL); // Near things obscure far things
+        // Tell WebGL to use our program when drawing
 
-                // Clear the canvas before we start drawing on it.
+        gl.useProgram(programInfo.program);
 
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        // Set the shader uniforms
 
-                // Create a perspective matrix, a special matrix that is
-                // used to simulate the distortion of perspective in a camera.
-                // Our field of view is 45 degrees, with a width/height
-                // ratio that matches the display size of the canvas
-                // and we only want to see objects between 0.1 units
-                // and 100 units away from the camera.
+        gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
+        gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
 
-                var fieldOfView = 45 * Math.PI / 180; // in radians
-                var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-                var zNear = 0.1;
-                var zFar = 100.0;
-                var projectionMatrix = glm.mat4.create();
-
-                // note: glmatrix.js always has the first argument
-                // as the destination to receive the result.
-                glm.mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
-
-                // Set the drawing position to the "identity" point, which is
-                // the center of the scene.
-                var modelViewMatrix = glm.mat4.create();
-
-                // Now move the drawing position a bit to where we want to
-                // start drawing the square.
-
-                glm.mat4.translate(modelViewMatrix, // destination matrix
-                modelViewMatrix, // matrix to translate
-                [-0.0, 0.0, -6.0]); // amount to translate
-
-                // Tell WebGL how to pull out the positions from the position
-                // buffer into the vertexPosition attribute.
-                {
-                        var numComponents = 2; // pull out 2 values per iteration
-                        var type = gl.FLOAT; // the data in the buffer is 32bit floats
-                        var normalize = false; // don't normalize
-                        var stride = 0; // how many bytes to get from one set of values to the next
-                        // 0 = use type and numComponents above
-                        var offset = 0; // how many bytes inside the buffer to start from
-                        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-                        gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, numComponents, type, normalize, stride, offset);
-                        gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
-                }
-
-                // Tell WebGL to use our program when drawing
-
-                gl.useProgram(programInfo.program);
-
-                // Set the shader uniforms
-
-                gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
-                gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
-
-                {
-                        var _offset = 0;
-                        var vertexCount = 4;
-                        gl.drawArrays(gl.TRIANGLE_STRIP, _offset, vertexCount);
-                }
+        {
+            var _offset = 0;
+            var vertexCount = 4;
+            gl.drawArrays(gl.TRIANGLE_STRIP, _offset, vertexCount);
         }
+    }
 
-        //Creates var in document if not on server side
-        if (typeof window !== 'undefined') {
-                window.lullaby = exports;
-        }
+    //Creates var in document if not on server side
+    if (typeof window !== 'undefined') {
+        window.lullaby = exports;
+    }
 })( false ? undefined['lullaby'] = {} : exports);
 
 /***/ }),
