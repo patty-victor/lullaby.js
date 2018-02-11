@@ -2539,7 +2539,8 @@ var forEach = exports.forEach = function () {
 
 var lullaby = {};
 
-(function () {
+(function (exports) {
+
         var glm = __webpack_require__(5);
 
         //Test shaders
@@ -2549,7 +2550,7 @@ var lullaby = {};
         var fsSource = "\n    void main() {\n      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n    }\n    ";
 
         //Functions
-        lullaby.main = function () {
+        exports.main = function () {
                 var canvas = document.querySelector("#glCanvas");
                 // Initialize the GL context
                 var gl = canvas.getContext("webgl");
@@ -2719,9 +2720,12 @@ var lullaby = {};
                         gl.drawArrays(gl.TRIANGLE_STRIP, _offset, vertexCount);
                 }
         }
-})();
 
-window.lullaby = lullaby;
+        //Creates var in document if not on server side
+        if (typeof window !== 'undefined') {
+                window.lullaby = exports;
+        }
+})( false ? undefined['lullaby'] = {} : exports);
 
 /***/ }),
 /* 5 */

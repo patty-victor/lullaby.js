@@ -1,9 +1,11 @@
 
 var lullaby = {};
 
-(function () {
+(function (exports) {
+
+
     const glm = require('gl-matrix')
-    
+
     //Test shaders
     // Vertex shader program
     const vsSource = `
@@ -24,7 +26,7 @@ var lullaby = {};
     `;
 
     //Functions
-    lullaby.main = function () {
+    exports.main = function () {
         const canvas = document.querySelector("#glCanvas");
         // Initialize the GL context
         const gl = canvas.getContext("webgl");
@@ -219,6 +221,13 @@ var lullaby = {};
         }
     }
 
-})();
+    //Creates var in document if not on server side
+    if (typeof window !== 'undefined') {
+        window.lullaby = exports;
+    }
+})(typeof exports === 'undefined' ? (this['lullaby'] = {}) : exports);
 
-window.lullaby = lullaby;
+
+
+
+
