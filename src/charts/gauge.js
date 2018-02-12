@@ -3,6 +3,7 @@ exports.createGaugeChart = createGaugeChart;
 
 //Requires
 var genericFuntions = require('../genericFunctions.js');
+var circle = require('../geometries/circle/circle.js');
 
 //Globals
 const defaultClearColor = {
@@ -12,8 +13,8 @@ const defaultClearColor = {
     a: 1.0,
 };
 const defaultChartSize = {
-    width: 640,
-    height: 480,
+    width: 400,
+    height: 300,
 }
 
 ////Public (exported)
@@ -31,6 +32,9 @@ function createGaugeChart(canvasId, options) {
         console.log("GL context could not be created.")
         return;
     }
+
+    //Draw the circle
+    circle.drawCircle(gl);
 }
 
 ////Private

@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -2537,205 +2537,114 @@ var forEach = exports.forEach = function () {
 "use strict";
 
 
-var lullaby = {};
+//Exports
+exports.initGlContext = initGlContext;
+exports.createProgram = createProgram;
+exports.loadShader = loadShader;
 
-//Requires
-var glm = __webpack_require__(5);
-var gauge = __webpack_require__(11);
+////Public (exported)
+//Init the canvas with the passed id
+function initGlContext(canvasId, clearColor, width, height) {
+    var canvas = document.getElementById(canvasId);
+    //Canvas not found
+    if (!canvas) {
+        console.log("Canvas element not found.");
+        return false;
+    }
 
-(function (exports) {
-        //Exported functions
-        exports.createGaugeChart = gauge.createGaugeChart;
+    var gl = canvas.getContext("webgl");
 
-        //Test shaders
-        // Vertex shader program
-        var vsSource = '\n    attribute vec4 aVertexPosition;\n\n    uniform mat4 uModelViewMatrix;\n    uniform mat4 uProjectionMatrix;\n\n    void main() {\n        gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;\n    }\n    ';
+    // Only continue if WebGL is available and working
+    if (!gl) {
+        console.log("Unable to initialize WebGL. Your browser or machine may not support it.");
+        return false;
+    }
 
-        var fsSource = '\n    void main() {\n      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n    }\n    ';
+    //Set chart size
+    canvas.width = width;
+    gl.maxWidth = width;
 
-        //Functions
-        ////Public functions
+    canvas.height = height;
+    gl.maxHeight = height;
 
-        ///Private
-        exports.main = function () {
-                var canvas = document.querySelector("#glCanvas");
-                // Initialize the GL context
-                var gl = canvas.getContext("webgl");
+    gl.viewport(0, 0, canvas.width, canvas.height);
 
-                // Only continue if WebGL is available and working
-                if (!gl) {
-                        alert("Unable to initialize WebGL. Your browser or machine may not support it.");
-                        return;
-                }
-                // Set clear color to black, fully opaque
-                gl.clearColor(0.0, 0.0, 0.0, 1.0);
-                // Clear the color buffer with specified clear color
-                gl.clear(gl.COLOR_BUFFER_BIT);
+    //Set the clear color
+    gl.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+    // Clear the color buffer with specified clear color
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
-                //Init program shader
-                var shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+    return gl;
+}
 
-                var programInfo = {
-                        program: shaderProgram,
-                        attribLocations: {
-                                vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition')
-                        },
-                        uniformLocations: {
-                                projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-                                modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
-                        }
-                };
+//Creates a shader program
+function createProgram(gl, vShader, fShader) {
+    //Create the gl program
+    var program = gl.createProgram();
+    //Atach both shaders
+    gl.attachShader(program, vShader);
+    gl.attachShader(program, fShader);
 
-                var buffer = initBuffers(gl);
+    //Link the program
+    gl.linkProgram(program);
 
-                drawScene(gl, programInfo, buffer);
-        };
+    // Check that shader program was able to link to WebGL
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        var error = gl.getProgramInfoLog(program);
+        console.log('Failed to link program: ' + error);
+        gl.deleteProgram(program);
+        gl.deleteShader(fShader);
+        gl.deleteShader(vShader);
+        return null;
+    }
 
-        // Initialize a shader program, so WebGL knows how to draw our data
-        function initShaderProgram(gl, vsSource, fsSource) {
-                var vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-                var fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+    //Return program if no errors ocurred
+    return program;
+}
 
-                // Create the shader program
+//Loads a new shader
+function loadShader(gl, type, source) {
+    var shader = gl.createShader(type);
 
-                var shaderProgram = gl.createProgram();
-                gl.attachShader(shaderProgram, vertexShader);
-                gl.attachShader(shaderProgram, fragmentShader);
-                gl.linkProgram(shaderProgram);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
 
-                // If creating the shader program failed, alert
+    //Check if compiled successfully
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.log("An error occurred compiling the shaders:" + gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+    }
 
-                if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-                        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
-                        return null;
-                }
-
-                return shaderProgram;
-        }
-
-        // creates a shader of the given type, uploads the source and
-        // compiles it.
-        function loadShader(gl, type, source) {
-                var shader = gl.createShader(type);
-
-                // Send the source to the shader object
-                gl.shaderSource(shader, source);
-
-                // Compile the shader program
-                gl.compileShader(shader);
-
-                // See if it compiled successfully
-                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                        alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
-                        gl.deleteShader(shader);
-                        return null;
-                }
-
-                return shader;
-        }
-
-        function initBuffers(gl) {
-
-                // Create a buffer for the square's positions.
-
-                var positionBuffer = gl.createBuffer();
-
-                // Select the positionBuffer as the one to apply buffer
-                // operations to from here out.
-
-                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-                // Now create an array of positions for the square.
-
-                var positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
-
-                // Now pass the list of positions into WebGL to build the
-                // shape. We do this by creating a Float32Array from the
-                // JavaScript array, then use it to fill the current buffer.
-
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-                return {
-                        position: positionBuffer
-                };
-        }
-
-        function drawScene(gl, programInfo, buffers) {
-                gl.clearColor(0.0, 0.0, 0.0, 1.0); // Clear to black, fully opaque
-                gl.clearDepth(1.0); // Clear everything
-                gl.enable(gl.DEPTH_TEST); // Enable depth testing
-                gl.depthFunc(gl.LEQUAL); // Near things obscure far things
-
-                // Clear the canvas before we start drawing on it.
-
-                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-                // Create a perspective matrix, a special matrix that is
-                // used to simulate the distortion of perspective in a camera.
-                // Our field of view is 45 degrees, with a width/height
-                // ratio that matches the display size of the canvas
-                // and we only want to see objects between 0.1 units
-                // and 100 units away from the camera.
-
-                var fieldOfView = 45 * Math.PI / 180; // in radians
-                var aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-                var zNear = 0.1;
-                var zFar = 100.0;
-                var projectionMatrix = glm.mat4.create();
-
-                // note: glmatrix.js always has the first argument
-                // as the destination to receive the result.
-                glm.mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
-
-                // Set the drawing position to the "identity" point, which is
-                // the center of the scene.
-                var modelViewMatrix = glm.mat4.create();
-
-                // Now move the drawing position a bit to where we want to
-                // start drawing the square.
-
-                glm.mat4.translate(modelViewMatrix, // destination matrix
-                modelViewMatrix, // matrix to translate
-                [-0.0, 0.0, -6.0]); // amount to translate
-
-                // Tell WebGL how to pull out the positions from the position
-                // buffer into the vertexPosition attribute.
-                {
-                        var numComponents = 2; // pull out 2 values per iteration
-                        var type = gl.FLOAT; // the data in the buffer is 32bit floats
-                        var normalize = false; // don't normalize
-                        var stride = 0; // how many bytes to get from one set of values to the next
-                        // 0 = use type and numComponents above
-                        var offset = 0; // how many bytes inside the buffer to start from
-                        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-                        gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, numComponents, type, normalize, stride, offset);
-                        gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
-                }
-
-                // Tell WebGL to use our program when drawing
-
-                gl.useProgram(programInfo.program);
-
-                // Set the shader uniforms
-
-                gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
-                gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
-
-                {
-                        var _offset = 0;
-                        var vertexCount = 4;
-                        gl.drawArrays(gl.TRIANGLE_STRIP, _offset, vertexCount);
-                }
-        }
-
-        //Creates var in document if not on server side
-        if (typeof window !== 'undefined') {
-                window.lullaby = exports;
-        }
-})( false ? undefined['lullaby'] = {} : exports);
+    //Return the shader if no errors occured
+    return shader;
+}
 
 /***/ }),
 /* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var lullaby = {};
+
+//Requires
+var glm = __webpack_require__(6);
+var gauge = __webpack_require__(12);
+
+(function (exports) {
+    //Exported functions
+    exports.createGaugeChart = gauge.createGaugeChart;
+
+    //Creates var in document if not on server side
+    if (typeof window !== 'undefined') {
+        window.lullaby = exports;
+    }
+})( false ? undefined['lullaby'] = {} : exports);
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2750,11 +2659,11 @@ var _common = __webpack_require__(0);
 
 var glMatrix = _interopRequireWildcard(_common);
 
-var _mat = __webpack_require__(6);
+var _mat = __webpack_require__(7);
 
 var mat2 = _interopRequireWildcard(_mat);
 
-var _mat2d = __webpack_require__(7);
+var _mat2d = __webpack_require__(8);
 
 var mat2d = _interopRequireWildcard(_mat2d);
 
@@ -2762,15 +2671,15 @@ var _mat2 = __webpack_require__(1);
 
 var mat3 = _interopRequireWildcard(_mat2);
 
-var _mat3 = __webpack_require__(8);
+var _mat3 = __webpack_require__(9);
 
 var mat4 = _interopRequireWildcard(_mat3);
 
-var _quat = __webpack_require__(9);
+var _quat = __webpack_require__(10);
 
 var quat = _interopRequireWildcard(_quat);
 
-var _vec = __webpack_require__(10);
+var _vec = __webpack_require__(11);
 
 var vec2 = _interopRequireWildcard(_vec);
 
@@ -2821,7 +2730,7 @@ THE SOFTWARE. */
 // END HEADER
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3314,7 +3223,7 @@ var mul = exports.mul = multiply;
 var sub = exports.sub = subtract;
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3856,7 +3765,7 @@ var mul = exports.mul = multiply;
 var sub = exports.sub = subtract;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5717,7 +5626,7 @@ var mul = exports.mul = multiply;
 var sub = exports.sub = subtract;
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6414,7 +6323,7 @@ var setAxes = exports.setAxes = function () {
 }();
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7051,7 +6960,7 @@ var forEach = exports.forEach = function () {
 }();
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7061,7 +6970,8 @@ var forEach = exports.forEach = function () {
 exports.createGaugeChart = createGaugeChart;
 
 //Requires
-var genericFuntions = __webpack_require__(12);
+var genericFuntions = __webpack_require__(4);
+var circle = __webpack_require__(13);
 
 //Globals
 var defaultClearColor = {
@@ -7071,8 +6981,8 @@ var defaultClearColor = {
     a: 1.0
 };
 var defaultChartSize = {
-    width: 640,
-    height: 480
+    width: 400,
+    height: 300
 
     ////Public (exported)
     //Creates a gauge chart and return it's object
@@ -7089,6 +6999,9 @@ var defaultChartSize = {
         console.log("GL context could not be created.");
         return;
     }
+
+    //Draw the circle
+    circle.drawCircle(gl);
 }
 
 ////Private
@@ -7107,46 +7020,152 @@ function createDefaultGaugeChartOptions() {
 }
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 //Exports
-exports.initGlContext = initGlContext;
+exports.drawCircle = drawCircle;
+
+//Requires
+var genericFunctions = __webpack_require__(4);
+
+//Shaders sources
+var vShaderSrc = __webpack_require__(14);
+var fShaderSrc = __webpack_require__(15);
 
 ////Public (exported)
-//Init the canvas with the passed id
-function initGlContext(canvasId, clearColor, width, height) {
-    var canvas = document.getElementById(canvasId);
-    //Canvas not found
-    if (!canvas) {
-        console.log("Canvas element not found.");
-        return false;
+//Draw the circle geometry
+function drawCircle(gl, options) {
+    //If no options create default circle options
+    if (!options) {
+        options = createDefaultCircleOptions();
     }
 
-    var gl = canvas.getContext("webgl");
+    //Load the shaders
+    var vShader = genericFunctions.loadShader(gl, gl.VERTEX_SHADER, vShaderSrc);
+    var fShader = genericFunctions.loadShader(gl, gl.FRAGMENT_SHADER, fShaderSrc);
 
-    // Only continue if WebGL is available and working
-    if (!gl) {
-        console.log("Unable to initialize WebGL. Your browser or machine may not support it.");
-        return false;
+    //Init the shader program and using it
+    var program = genericFunctions.createProgram(gl, vShader, fShader);
+    gl.useProgram(program);
+
+    //Initializing the buffer
+    var vertexCount = initBuffers(gl, program, options);
+
+    //Checks if the buffer has vertex
+    if (vertexCount < 0) {
+        console.log('Failed to set the positions of the vertices from circle geometrie');
+        return null;
     }
 
-    //Set chart size
-
-    canvas.width = width;
-    canvas.height = height;
-
-    //Set the clear color
-    gl.clearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
-
-    // Clear the color buffer with specified clear color
-    gl.clear(gl.COLOR_BUFFER_BIT);
-
-    return gl;
+    // Draw a line
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, vertexCount);
 }
+
+////Private
+//Init the positions buffer
+function initBuffers(gl, program, options) {
+    // Create a buffers objects
+    var vertexBuffer = gl.createBuffer();
+    var colorBuffer = gl.createBuffer();
+
+    ////Build vertex and colors buffer
+    var vertices = [];
+    var vertCount = 2;
+    var rgbaCount = 4;
+    var colors = [];
+
+    //Calculate the relative size of radius for canvas width and height
+    var relativeWidthRadius = options.radius / gl.canvas.width;
+    var relativeHeightRadius = options.radius / gl.canvas.height;
+    //Calculate the inner radius relative as well if needed
+    var relativeWidthInnerRadius;
+    var relativeHeightInnerRadius;
+
+    if (options.innerRadius) {
+        relativeWidthInnerRadius = options.innerRadius / gl.canvas.width;
+        relativeHeightInnerRadius = options.innerRadius / gl.canvas.height;
+    }
+
+    //Create positions
+    for (var degree = options.degreeInit; degree <= options.degreeEnd; degree += 1) {
+        //Degrees to radians
+        var rad = degree * Math.PI / 180;
+
+        //Vertice 1
+        var vert1 = [Math.sin(rad) * relativeWidthRadius + options.center.x, Math.cos(rad) * relativeHeightRadius + options.center.y];
+
+        //Vertice 2
+        //With no inner radius
+        if (!options.innerRadius) {
+            var vert2 = [0 + options.center.x, 0 + options.center.y];
+        }
+        //With inner radius
+        else {
+                var vert2 = [Math.sin(rad) * relativeWidthInnerRadius + options.center.x, Math.cos(rad) * relativeHeightInnerRadius + options.center.y];
+            }
+
+        //Colors for vertices 1 and 2
+        var color1 = [options.fillColor.r, options.fillColor.g, options.fillColor.b, options.fillColor.a];
+        var color2 = [options.fillColor.r, options.fillColor.g, options.fillColor.b, options.fillColor.a];
+
+        //Add the new vertices to the array
+        vertices = vertices.concat(vert1);
+        vertices = vertices.concat(vert2);
+        //Add the new colors to the array
+        colors = colors.concat(color1);
+        colors = colors.concat(color2);
+    }
+
+    var vertexCount = vertices.length / vertCount;
+
+    ////Bind vertex buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+    var aVertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
+    gl.enableVertexAttribArray(aVertexPosition);
+    gl.vertexAttribPointer(aVertexPosition, vertCount, gl.FLOAT, false, 0, 0);
+
+    ////Bind colors buffers
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+    var aVertexColor = gl.getAttribLocation(program, 'aVertexColor');
+    gl.enableVertexAttribArray(aVertexColor);
+    gl.vertexAttribPointer(aVertexColor, rgbaCount, gl.FLOAT, false, 0, 0);
+
+    return vertexCount;
+}
+
+//Creates default gauge chart options
+function createDefaultCircleOptions() {
+    var options = {
+        center: { x: 0.0, y: 0.0 },
+        radius: 50,
+        innerRadius: 20,
+        degreeInit: 0.0,
+        degreeEnd: 360,
+        fillColor: { r: 1.0, g: 0.0, b: 0.0, a: 1.0 }
+    };
+
+    return options;
+}
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports) {
+
+module.exports = "attribute vec4 aVertexPosition;\r\nattribute vec4 aVertexColor;\r\n\r\nvarying lowp vec4 vColor;\r\n\r\nvoid main() {\r\n  gl_Position = aVertexPosition;\r\n  vColor = aVertexColor;\r\n}"
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports) {
+
+module.exports = "varying lowp vec4 vColor;\r\n\r\nvoid main() {\r\n  gl_FragColor = vColor;\r\n}"
 
 /***/ })
 /******/ ]);

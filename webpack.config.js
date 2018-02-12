@@ -15,6 +15,10 @@ module.exports = {
                 query: {
                     presets: ['es2015']
                 }
+            },
+            {
+                test: /\.glsl$/,
+                loader: 'webpack-glsl-loader'
             }
         ]
     },
