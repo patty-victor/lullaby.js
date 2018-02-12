@@ -7001,7 +7001,36 @@ var defaultChartSize = {
     }
 
     //Draw the circle
-    circle.drawCircle(gl);
+    var optionsCircle1 = {
+        center: { x: 0.0, y: -0.8 },
+        radius: 300,
+        innerRadius: 100,
+        degreeInit: -90.0,
+        degreeEnd: -32.0,
+        fillColor: { r: 0.047, g: 0.596, b: 0.592, a: 1.0 }
+    };
+
+    var optionsCircle2 = {
+        center: { x: 0.0, y: -0.8 },
+        radius: 300,
+        innerRadius: 100,
+        degreeInit: -28.0,
+        degreeEnd: 28.0,
+        fillColor: { r: 0.972, g: 0.815, b: 0.325, a: 1.0 }
+    };
+
+    var optionsCircle3 = {
+        center: { x: 0.0, y: -0.8 },
+        radius: 300,
+        innerRadius: 100,
+        degreeInit: 32.0,
+        degreeEnd: 90.0,
+        fillColor: { r: 0.792, g: 0.301, b: 0.2, a: 1.0 }
+    };
+
+    circle.drawCircle(gl, optionsCircle1);
+    circle.drawCircle(gl, optionsCircle2);
+    circle.drawCircle(gl, optionsCircle3);
 }
 
 ////Private
