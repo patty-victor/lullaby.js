@@ -7000,49 +7000,73 @@ var defaultChartSize = {
         return;
     }
 
-    //Draw the circle
-    var optionsCircle1 = {
-        center: { x: 0.0, y: -0.8 },
-        radius: 300,
-        innerRadius: 100,
-        degreeInit: -90.0,
-        degreeEnd: -32.0,
-        fillColor: { r: 0.047, g: 0.596, b: 0.592, a: 1.0 }
-    };
+    //Draw the gauge circles
+    if (options.areas) {
+        var currentRotation = options.initialRotation;
 
-    var optionsCircle2 = {
-        center: { x: 0.0, y: -0.8 },
-        radius: 300,
-        innerRadius: 100,
-        degreeInit: -28.0,
-        degreeEnd: 28.0,
-        fillColor: { r: 0.972, g: 0.815, b: 0.325, a: 1.0 }
-    };
+        //For every area in areas array create the circle
+        for (var i = 0; i < options.areas.length; i++) {
+            var areaOptions = options.areas[i];
 
-    var optionsCircle3 = {
-        center: { x: 0.0, y: -0.8 },
-        radius: 300,
-        innerRadius: 100,
-        degreeInit: 32.0,
-        degreeEnd: 90.0,
-        fillColor: { r: 0.792, g: 0.301, b: 0.2, a: 1.0 }
-    };
+            //Build the circle options
+            var circleOptions = {
+                center: options.center,
+                radius: options.radius,
+                innerRadius: options.innerRadius,
+                fillColor: areaOptions.fillColor,
+                degreeInit: currentRotation,
+                degreeEnd: currentRotation + areaOptions.degrees
 
-    circle.drawCircle(gl, optionsCircle1);
-    circle.drawCircle(gl, optionsCircle2);
-    circle.drawCircle(gl, optionsCircle3);
+                //If has areas separations
+            };if (options.areasSeparation) {
+                //Add the left separation if not the first
+                if (i != 0) {
+                    circleOptions.degreeInit += options.areasSeparation;
+                }
+
+                //Add the right separation if not the last
+                if (i != options.areas.length) {
+                    circleOptions.degreeEnd -= options.areasSeparation;
+                }
+            }
+
+            //Draw the circle
+            circle.drawCircle(gl, circleOptions);
+
+            currentRotation += areaOptions.degrees;
+        }
+    }
 }
 
 ////Private
 //Creates default gauge chart options
 function createDefaultGaugeChartOptions() {
+
+    var area1 = {
+        degrees: 60,
+        fillColor: { r: 0.047, g: 0.596, b: 0.592, a: 1.0 }
+    };
+
+    var area2 = {
+        degrees: 60,
+        fillColor: { r: 0.972, g: 0.815, b: 0.325, a: 1.0 }
+    };
+
+    var area3 = {
+        degrees: 60,
+        fillColor: { r: 0.792, g: 0.301, b: 0.2, a: 1.0 }
+    };
+
     var options = {
         width: defaultChartSize.width,
         height: defaultChartSize.height,
         clearColor: defaultClearColor,
-        externalRadio: 20,
-        internalRadio: 5,
-        angle: 0.5
+        radius: 300,
+        innerRadius: 150,
+        initialRotation: -90,
+        center: { x: 0.0, y: -0.8 },
+        areasSeparation: 2,
+        areas: [area1, area2, area3]
     };
 
     return options;
