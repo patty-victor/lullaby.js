@@ -33,6 +33,16 @@ function createGaugeChart(canvasId, options) {
         return;
     }
 
+    //Draw gauge areas
+    drawGaugeAreas(gl, options);
+
+    //Draw gauge pointer
+    drawGaugePointer(gl, options);
+}
+
+////Private
+//Draw gauge areas
+function drawGaugeAreas(gl, options) {
     //Draw the gauge circles
     if (options.areas) {
         var currentRotation = options.initialRotation;
@@ -55,12 +65,12 @@ function createGaugeChart(canvasId, options) {
             if (options.areasSeparation) {
                 //Add the left separation if not the first
                 if (i != 0) {
-                    circleOptions.degreeInit += options.areasSeparation/2;
+                    circleOptions.degreeInit += options.areasSeparation / 2;
                 }
 
                 //Add the right separation if not the last
                 if (i != options.areas.length) {
-                    circleOptions.degreeEnd -= options.areasSeparation/2;
+                    circleOptions.degreeEnd -= options.areasSeparation / 2;
                 }
             }
 
@@ -72,7 +82,35 @@ function createGaugeChart(canvasId, options) {
     }
 }
 
-////Private
+//Draw gauge pointer
+function drawGaugePointer(gl, options) {
+
+    if (!options.pointerRadius || !options.pointerColor || !options.pointerSize || !options.pointerAnchor) {
+        return;
+    }
+
+
+    var xCenter = options.center.x + options.pointerAnchor.x / options.width;
+    var yCenter = options.center.y + options.pointerAnchor.y / options.height;
+
+    //Draw the circle pointer
+    var circleOptions = {
+        center: {x: xCenter, y: yCenter},
+        radius: options.pointerRadius,
+        innerRadius: 0,
+        degreeInit: 0,
+        degreeEnd: 360,
+        fillColor: options.pointerColor,
+    };
+
+    //Draw the circle
+    circle.drawCircle(gl, circleOptions);
+
+    // var pointerArrow = options.pointerSize - options.pointerRadius
+
+    // var xArrow = 
+}
+
 //Creates default gauge chart options
 function createDefaultGaugeChartOptions() {
 
@@ -101,6 +139,11 @@ function createDefaultGaugeChartOptions() {
         center: { x: 0.0, y: -0.8 },
         areasSeparation: 2,
         areas: [area1, area2, area3],
+        pointerRadius: 20,
+        pointerSize: 100,
+        pointerColor: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
+        pointerAnchor: { x: 0.0, y: 20 },
+        pointerPosition: 0.5
     };
 
     return options;
