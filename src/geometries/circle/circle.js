@@ -22,6 +22,12 @@ function drawCircle(gl, options) {
 
     //Init the shader program and using it
     var program = genericFunctions.createProgram(gl, vShader, fShader);
+
+    if(!program){
+        console.log('Could not create the gl program.');
+        return;
+    }
+
     gl.useProgram(program);
 
     //Initializing the buffer
@@ -47,12 +53,14 @@ function initBuffers(gl, program, options) {
     ////Build vertex and colors buffer
     var vertices = [];
     var vertCount = 2;
-    var rgbaCount = 4;
+
     var colors = [];
+    var rgbaCount = 4;
 
     //Calculate the relative size of radius for canvas width and height
     var relativeWidthRadius = options.radius / gl.canvas.width;
     var relativeHeightRadius = options.radius / gl.canvas.height;
+    
     //Calculate the inner radius relative as well if needed
     var relativeWidthInnerRadius;
     var relativeHeightInnerRadius;

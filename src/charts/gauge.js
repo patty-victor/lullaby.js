@@ -18,7 +18,7 @@ const defaultChartSize = {
 }
 
 ////Public (exported)
-//Creates a gauge chart and return it's object
+//Creates a gauge chart and returns it's object
 function createGaugeChart(canvasId, options) {
     //If no options was passed create a default object
     if (!options) {
@@ -29,7 +29,7 @@ function createGaugeChart(canvasId, options) {
 
     //Context not created
     if (!gl) {
-        console.log("GL context could not be created.")
+        console.log("GL context could not be created.");
         return;
     }
 
@@ -55,12 +55,12 @@ function createGaugeChart(canvasId, options) {
             if (options.areasSeparation) {
                 //Add the left separation if not the first
                 if (i != 0) {
-                    circleOptions.degreeInit += options.areasSeparation;
+                    circleOptions.degreeInit += options.areasSeparation/2;
                 }
 
                 //Add the right separation if not the last
                 if (i != options.areas.length) {
-                    circleOptions.degreeEnd -= options.areasSeparation;
+                    circleOptions.degreeEnd -= options.areasSeparation/2;
                 }
             }
 

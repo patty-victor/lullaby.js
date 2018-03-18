@@ -13,48 +13,31 @@
 
 <script>
 
-    var options;
-
     var area1 = {
-        degrees: 20,
-        fillColor: { r: 1.0, g: 0.0, b: 0.0, a: 1.0 },
+        degrees: 60,
+        fillColor: { r: 0.047, g: 0.596, b: 0.592, a: 1.0 },
     };
 
     var area2 = {
-        degrees: 30,
-        fillColor: { r: 0.0, g: 1.00, b: 0.00, a: 1.0 },
+        degrees: 60,
+        fillColor: { r: 0.972, g: 0.815, b: 0.325, a: 1.0 },
     }
 
     var area3 = {
-        degrees: 40,
-        fillColor: { r: 0.0, g: 0.0, b: 1.0, a: 1.0 },
+        degrees: 60,
+        fillColor: { r: 0.792, g: 0.301, b: 0.2, a: 1.0 },
     }
 
-    var area4 = {
-        degrees: 40,
-        fillColor: { r: 1.0, g: 1.0, b: 0.0, a: 1.0 },
-    };
-
-    var area5 = {
-        degrees: 30,
-        fillColor: { r: 0.0, g: 1.00, b: 1.00, a: 1.0 },
-    }
-
-    var area6 = {
-        degrees: 50,
-        fillColor: { r: 1.0, g: 0.0, b: 1.0, a: 1.0 },
-    }
-
-    options = {
+    var options = {
         width: 400,
-        height: 300,
-        clearColor: { r: 0.9, g: 0.9, b: 0.9, a: 1.0 },
+        height: 200,
+        clearColor: {r: 0.9, g: 0.9, b: 0.9, a: 1.0},
         radius: 300,
-        innerRadius: 150,
+        innerRadius: 170,
         initialRotation: -90,
         center: { x: 0.0, y: -0.8 },
-        areasSeparation: 1,
-        areas: [area1, area2, area3, area4, area5, area6],
+        areasSeparation: 2,
+        areas: [area1, area2, area3],
     };
 
     lullaby.createGaugeChart('glCanvas', options);

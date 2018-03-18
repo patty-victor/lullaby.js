@@ -6985,7 +6985,7 @@ var defaultChartSize = {
     height: 300
 
     ////Public (exported)
-    //Creates a gauge chart and return it's object
+    //Creates a gauge chart and returns it's object
 };function createGaugeChart(canvasId, options) {
     //If no options was passed create a default object
     if (!options) {
@@ -7021,12 +7021,12 @@ var defaultChartSize = {
             };if (options.areasSeparation) {
                 //Add the left separation if not the first
                 if (i != 0) {
-                    circleOptions.degreeInit += options.areasSeparation;
+                    circleOptions.degreeInit += options.areasSeparation / 2;
                 }
 
                 //Add the right separation if not the last
                 if (i != options.areas.length) {
-                    circleOptions.degreeEnd -= options.areasSeparation;
+                    circleOptions.degreeEnd -= options.areasSeparation / 2;
                 }
             }
 
@@ -7103,6 +7103,12 @@ function drawCircle(gl, options) {
 
     //Init the shader program and using it
     var program = genericFunctions.createProgram(gl, vShader, fShader);
+
+    if (!program) {
+        console.log('Could not create the gl program.');
+        return;
+    }
+
     gl.useProgram(program);
 
     //Initializing the buffer
@@ -7128,12 +7134,14 @@ function initBuffers(gl, program, options) {
     ////Build vertex and colors buffer
     var vertices = [];
     var vertCount = 2;
-    var rgbaCount = 4;
+
     var colors = [];
+    var rgbaCount = 4;
 
     //Calculate the relative size of radius for canvas width and height
     var relativeWidthRadius = options.radius / gl.canvas.width;
     var relativeHeightRadius = options.radius / gl.canvas.height;
+
     //Calculate the inner radius relative as well if needed
     var relativeWidthInnerRadius;
     var relativeHeightInnerRadius;
